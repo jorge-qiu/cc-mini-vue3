@@ -1,6 +1,10 @@
+import { extend } from "../shared";
+
 class ReactiveEffect {
   private _fn: any;
-
+  deps = [];
+  active = true;
+  onStop?: () => void;
   constructor(fn, public scheduler?) {
     this._fn = fn;
   }
@@ -8,6 +12,21 @@ class ReactiveEffect {
     activeEffect = this;
     return this._fn();
   }
+  stop() {
+    if (this.active) {
+      clearupEffect(this);
+      if (this.onStop) {
+        this.onStop();
+      }
+      this.active = false;
+    }
+  }
+}
+
+function clearupEffect(effect) {
+  effect.deps.forEach((dep: any) => {
+    dep.delete(effect);
+  });
 }
 
 const targetMap = new Map();
@@ -27,6 +46,10 @@ export function track(target, key) {
     depsMap.set(key, dep);
   }
   dep.add(activeEffect);
+
+  // activeEffect 可能是个undefined ，因为这里需要的是在活跃状态下才会有，如果是单纯的reactive的获取的话，是不存在activeEffect
+  if (!activeEffect) return;
+  activeEffect.deps.push(dep);
 }
 
 export function trigger(target, key) {
@@ -46,10 +69,24 @@ export function trigger(target, key) {
 let activeEffect;
 
 export function effect(fn, options: any = {}) {
-  //f
+  //fn
   const _effect = new ReactiveEffect(fn, options.scheduler);
+
+  // options
+  extend(_effect, options);
+
+  // extend
+
+  // _effect.onStop = options.onStop;
 
   _effect.run();
 
-  return _effect.run.bind(_effect);
+  const runner: any = _effect.run.bind(_effect);
+  runner.effect = _effect;
+
+  return runner;
+}
+
+export function stop(runner) {
+  runner.effect.stop();
 }

@@ -16,7 +16,7 @@ const searchQuery = ref('')
           // 可以决定：延迟搜索、批量搜索、条件搜索等
           debounce(runner, 500)
       }
-  })s
+  })
 ```
 
 2. 在更新前执行特定操作

@@ -12,3 +12,4 @@
 .env.local.local
 .env.development.local.local
 .env.production.local.local
+.claude

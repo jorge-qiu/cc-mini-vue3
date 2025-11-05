@@ -34,6 +34,7 @@ export const mutableHandlers = {
 export const readonlyHandlers = {
   get: readonlyGet,
   set(target, key, value) {
+    console.warn(`key:${key} set失败， 因为target是 readonly`, target);
     return value;
   },
 };
